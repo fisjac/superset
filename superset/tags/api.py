@@ -91,6 +91,7 @@ class TagRestApi(BaseSupersetModelRestApi):
         "changed_by.last_name",
         "changed_on_delta_humanized",
         "created_by.first_name",
+        "created_on_delta_humanized",
         "created_by.last_name",
     ]
 
@@ -106,6 +107,7 @@ class TagRestApi(BaseSupersetModelRestApi):
         "changed_on_delta_humanized",
         "created_by.first_name",
         "created_by.last_name",
+        "created_on_delta_humanized",
         "created_by",
     ]
 
