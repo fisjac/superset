@@ -105,6 +105,7 @@ const Actions = styled.div`
 `;
 
 function DashboardList(props: DashboardListProps) {
+  const [showBulkTagModal, setShowBulkTagModal] = useState<boolean>(false);
   const {
     addDangerToast,
     addSuccessToast,
@@ -755,6 +756,7 @@ function DashboardList(props: DashboardListProps) {
                 data={dashboards}
                 disableBulkSelect={toggleBulkSelect}
                 fetchData={fetchData}
+                refreshData={refreshData}
                 filters={filters}
                 initialSort={initialSort}
                 loading={loading}
@@ -770,6 +772,8 @@ function DashboardList(props: DashboardListProps) {
                     ? 'card'
                     : 'table'
                 }
+                enableBulkTag
+                bulkTagResourceName={'dashboard'}
               />
             </>
           );

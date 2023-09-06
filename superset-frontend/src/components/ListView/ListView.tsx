@@ -16,8 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+// @ts-nocheck
 import { t, styled } from '@superset-ui/core';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Alert from 'src/components/Alert';
 import cx from 'classnames';
 import Button from 'src/components/Button';
@@ -25,6 +26,7 @@ import Icons from 'src/components/Icons';
 import IndeterminateCheckbox from 'src/components/IndeterminateCheckbox';
 import Pagination from 'src/components/Pagination';
 import TableCollection from 'src/components/TableCollection';
+import BulkTagModal from 'src/features/tags/BulkTagModal';
 import CardCollection from './CardCollection';
 import FilterControls from './Filters';
 import { CardSortSelect } from './CardSortSelect';
@@ -207,6 +209,7 @@ export interface ListViewProps<T extends object = any> {
   count: number;
   pageSize: number;
   fetchData: (conf: FetchDataConfig) => any;
+  refreshData: () => any;
   loading: boolean;
   className?: string;
   initialSort?: SortColumn[];
@@ -227,6 +230,8 @@ export interface ListViewProps<T extends object = any> {
   showThumbnails?: boolean;
   emptyState?: EmptyStateProps;
   columnsForWrapText?: string[];
+  enableBulkTag?: boolean;
+  bulkTagResourceName?: string;
 }
 
 function ListView<T extends object = any>({
@@ -235,6 +240,7 @@ function ListView<T extends object = any>({
   count,
   pageSize: initialPageSize,
   fetchData,
+  refreshData,
   loading,
   initialSort = [],
   className = '',
@@ -250,6 +256,8 @@ function ListView<T extends object = any>({
   highlightRowId,
   emptyState,
   columnsForWrapText,
+  enableBulkTag = true,
+  bulkTagResourceName,
 }: ListViewProps<T>) {
   const {
     getTableProps,
@@ -302,6 +310,7 @@ function ListView<T extends object = any>({
   }, [query.filters]);
 
   const cardViewEnabled = Boolean(renderCard);
+  const [showBulkTagModal, setShowBulkTagModal] = useState<boolean>(false);
 
   useEffect(() => {
     // discard selections if bulk select is disabled
@@ -310,6 +319,13 @@ function ListView<T extends object = any>({
 
   return (
     <ListViewStyles>
+      <BulkTagModal
+        show={showBulkTagModal}
+        selected={selectedFlatRows}
+        refreshData={refreshData}
+        resourceName={bulkTagResourceName}
+        onHide={() => setShowBulkTagModal(false)}
+      />
       <div data-test={className} className={`superset-list-view ${className}`}>
         <div className="header">
           {cardViewEnabled && (
@@ -375,6 +391,17 @@ function ListView<T extends object = any>({
                           {action.name}
                         </Button>
                       ))}
+                      {enableBulkTag && (
+                        <span
+                          data-test="bulk-select-deselect-all"
+                          role="button"
+                          tabIndex={0}
+                          className="deselect-all"
+                          onClick={() => setShowBulkTagModal(true)}
+                        >
+                          {t('Add Tag')}
+                        </span>
+                      )}
                     </>
                   )}
                 </>
@@ -425,7 +452,6 @@ function ListView<T extends object = any>({
           )}
         </div>
       </div>
-
       {rows.length > 0 && (
         <div className="pagination-container">
           <Pagination

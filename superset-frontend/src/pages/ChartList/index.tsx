@@ -851,12 +851,15 @@ function ChartList(props: ChartListProps) {
               count={chartCount}
               data={charts}
               disableBulkSelect={toggleBulkSelect}
+              refreshData={refreshData}
               fetchData={fetchData}
               filters={filters}
               initialSort={initialSort}
               loading={loading}
               pageSize={PAGE_SIZE}
               renderCard={renderCard}
+              enableBulkTag
+              bulkTagResourceName="chart"
               showThumbnails={
                 userSettings
                   ? userSettings.thumbnails

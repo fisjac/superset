@@ -63,6 +63,14 @@ class TagPostSchema(Schema):
     )
 
 
+class TagPostBulkSchema(Schema):
+    tags = fields.List(fields.String())
+    # resource id's to tag with tag
+    objects_to_tag = fields.List(
+        fields.Tuple((fields.String(), fields.Int())), required=False
+    )
+
+
 class TagPutSchema(Schema):
     name = fields.String()
     description = fields.String(required=False)
