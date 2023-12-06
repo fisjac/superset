@@ -51,7 +51,7 @@ import { AntdCheckbox, AsyncSelect, Select } from 'src/components';
 import TextAreaControl from 'src/explore/components/controls/TextAreaControl';
 import { useCommonConf } from 'src/features/databases/state';
 import { NotificationMethod } from './components/NotificationMethod';
-import { AlertReportCronSchedulerTest } from './components/AlertReportCronScheduler';
+import { AlertReportCronScheduler } from './components/AlertReportCronScheduler';
 import NumberInput from './components/NumberInput';
 import { CustomWidthHeaderStyle } from 'src/features/reports/ReportModal/styles';
 import { InfoTooltipWithTrigger } from '@superset-ui/chart-controls';
@@ -70,7 +70,6 @@ import {
 } from 'src/features/alerts/types';
 import { useSelector } from 'react-redux';
 import { UserWithPermissionsAndRoles } from 'src/types/bootstrapTypes';
-import { text } from '@storybook/addon-knobs';
 
 const TIMEOUT_MIN = 1;
 const TEXT_BASED_VISUALIZATION_TYPES = [
@@ -165,7 +164,11 @@ const no_margin_bottom = css`
 
 // Styled Components
 
-/* Height of modal body defined here, total width defined at component invocation as antd prop
+/*
+Height of modal body defined here, total width defined at component invocation as antd prop.
+
+.inline-container applies to Alert Condition panel <div> containing trigger
+and value inputs.
  */
 const StyledModal = styled(Modal)`
   .ant-modal-header {
@@ -173,43 +176,6 @@ const StyledModal = styled(Modal)`
   }
   .ant-modal-body {
     height: ${({ theme }) => theme.gridUnit * MODAL_BODY_HEIGHT}px;
-  }
-`;
-
-const StyledSectionContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  .control-label {
-    margin-top: ${({ theme }) => theme.gridUnit}px;
-  }
-
-  .header-section {
-    display: flex;
-    flex-flow: column nowrap;
-    flex: 0 0 auto;
-    align-items: stretch;
-    width: 100%;
-  }
-
-  .helper {
-    color: ${({ theme }) => theme.colors.grayscale.base};
-    font-size: ${({ theme }) => theme.typography.sizes.s}px;
-  }
-
-  .column-section {
-    display: flex;
-    flex-flow: column nowrap;
-    flex: 1 1 auto;
-
-    .column {
-      flex: 1 1 auto;
-      min-width: calc(33.33% - ${({ theme }) => theme.gridUnit * 8}px);
-
-      .async-select {
-        margin: 10px 0 20px;
-      }
-    }
   }
 
   .inline-container {
@@ -223,34 +189,6 @@ const StyledSectionContainer = styled.div`
     > div {
       flex: 1 1 auto;
     }
-
-    &.add-margin {
-      margin-bottom: 5px;
-    }
-
-    .styled-input {
-      margin: 0 0 0 10px;
-
-      input {
-        flex: 0 0 auto;
-      }
-    }
-  }
-`;
-
-const StyledSectionTitle = styled.div`
-  display: flex;
-  align-items: center;
-  margin: ${({ theme }) => theme.gridUnit * 2}px auto
-    ${({ theme }) => theme.gridUnit * 4}px auto;
-
-  h4 {
-    margin: 0;
-  }
-
-  .required {
-    margin-left: ${({ theme }) => theme.gridUnit}px;
-    color: ${({ theme }) => theme.colors.error.base};
   }
 `;
 
@@ -381,10 +319,6 @@ const StyledNotificationMethodWrapper = styled.div`
   }
 `;
 
-const timezoneHeaderStyle = (theme: SupersetTheme) => css`
-  margin: ${theme.gridUnit * 3}px 0;
-`;
-
 const inputSpacer = (theme: SupersetTheme) => css`
   margin-right: ${theme.gridUnit * 3}px;
 `;
@@ -397,14 +331,29 @@ interface NotificationMethodAddProps {
 }
 
 export const TRANSLATIONS = {
-  ADD_NOTIFICATION_METHOD_TEXT: t('Add another notification method'),
-  ADD_DELIVERY_METHOD_TEXT: t('Add delivery method'),
-  SAVE_TEXT: t('Save'),
-  ADD_TEXT: t('Add'),
+  // Modal header
   EDIT_REPORT_TEXT: t('Edit Report'),
   EDIT_ALERT_TEXT: t('Edit Alert'),
   ADD_REPORT_TEXT: t('Add Report'),
   ADD_ALERT_TEXT: t('Add Alert'),
+  // Panel titles
+  GENERAL_TITLE: t('General information'),
+  ALERT_CONDITION_TITLE: t('Alert condition'),
+  ALERT_CONTENTS_TITLE: t('Alert contents'),
+  REPORT_CONTENTS_TITLE: t('Report contents'),
+  SCHEDULE_TITLE: t('Schedule'),
+  NOTIFICATION_TITLE: t('Notification method'),
+  // Panel subtitles
+  GENERAL_SUBTITLE: t('Set up basic details, such as name and description.'),
+  ALERT_CONDITION_SUBTITLE: t(
+    'Define the database, SQL query, and triggering conditions for alert.',
+  ),
+  CONTENTS_SUBTITLE: t('Customize data source, filters, and layout.'),
+  SCHEDULE_SUBTITLE: t(
+    'Define delivery schedule, timezone, and frequency settings.',
+  ),
+  NOTIFICATION_SUBTITLE: t('Choose notification method and recipients.'),
+  // General info panel inputs
   REPORT_NAME_TEXT: t('Report name'),
   REPORT_NAME_PLACEHOLDER: t('Enter report name'),
   ALERT_NAME_TEXT: t('Alert name'),
@@ -418,6 +367,7 @@ export const TRANSLATIONS = {
   ALERT_DESCRIPTION_PLACEHOLDER: t('Include description to be sent with alert'),
   ACTIVE_REPORT_TEXT: t('Report is active'),
   ACTIVE_ALERT_TEXT: t('Alert is active'),
+  // Alert condition panel inputs
   ALERT_CONDITION_TEXT: t('Alert condition'),
   DATABASE_TEXT: t('Database'),
   DATABASE_PLACEHOLDER: t('Select database'),
@@ -427,16 +377,7 @@ export const TRANSLATIONS = {
   CONDITION_PLACEHOLDER: t('Condition'),
   VALUE_TEXT: t('Value'),
   VALUE_TOOLTIP: t('Threshold value should be double precision number'),
-  REPORT_SCHEDULE_TEXT: t('Report schedule'),
-  ALERT_CONDITION_SCHEDULE_TEXT: t('Alert condition schedule'),
-  TIMEZONE_TEXT: t('Timezone'),
-  SCHEDULE_SETTINGS_TEXT: t('Schedule settings'),
-  LOG_RETENTION_TEXT: t('Log retention'),
-  WORKING_TIMEOUT_TEXT: t('Working timeout'),
-  TIME_IN_SECONDS_TEXT: t('Time in seconds'),
-  SECONDS_TEXT: t('seconds'),
-  GRACE_PERIOD_TEXT: t('Grace period'),
-  MESSAGE_CONTENT_TEXT: t('Message content'),
+  // Contents panel inputs
   DASHBOARD_TEXT: t('Dashboard'),
   CHART_TEXT: t('Chart'),
   SEND_AS_PNG_TEXT: t('Send as PNG'),
@@ -445,9 +386,22 @@ export const TRANSLATIONS = {
   IGNORE_CACHE_TEXT: t('Ignore cache when generating report'),
   CUSTOM_SCREENSHOT_WIDTH_TEXT: t('Screenshot width'),
   CUSTOM_SCREENSHOT_WIDTH_PLACEHOLDER_TEXT: t('Input custom width in pixels'),
-  NOTIFICATION_METHOD_TEXT: t('Notification method'),
+  // Schdule panel inputs
   SCHEDULE_TYPE_TEXT: t('Schedule type'),
   SCHEDULE: t('Schedule'),
+  TIMEZONE_TEXT: t('Timezone'),
+  LOG_RETENTION_TEXT: t('Log retention'),
+  WORKING_TIMEOUT_TEXT: t('Working timeout'),
+  TIME_IN_SECONDS_TEXT: t('Time in seconds'),
+  SECONDS_TEXT: t('seconds'),
+  GRACE_PERIOD_TEXT: t('Grace period'),
+  // Notification panel inputs
+  ADD_NOTIFICATION_METHOD_TEXT: t('Add another notification method'),
+  ADD_DELIVERY_METHOD_TEXT: t('Add delivery method'),
+  NOTIFICATION_METHOD_TEXT: t('Notification method'),
+  // Button text
+  SAVE_TEXT: t('Save'),
+  ADD_TEXT: t('Add'),
 };
 
 const NotificationMethodAdd: FunctionComponent<NotificationMethodAddProps> = ({
@@ -1364,8 +1318,8 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         <StyledPanel
           header={
             <ValidatedPanelHeader
-              title="General Information"
-              subtitle="Set up basic alert details, such as name and description"
+              title={TRANSLATIONS.GENERAL_TITLE}
+              subtitle={TRANSLATIONS.GENERAL_SUBTITLE}
               required
               validateCheckStatus={validationStatus[Sections.GENERAL].status}
             />
@@ -1453,8 +1407,8 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
           <StyledPanel
             header={
               <ValidatedPanelHeader
-                title={TRANSLATIONS.ALERT_CONDITION_TEXT}
-                subtitle="Define the database, SQL query, and triggering conditions for alert."
+                title={TRANSLATIONS.ALERT_CONDITION_TITLE}
+                subtitle={TRANSLATIONS.ALERT_CONDITION_SUBTITLE}
                 required={false}
                 validateCheckStatus={validationStatus[Sections.ALERT].status}
               />
@@ -1554,11 +1508,12 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         <StyledPanel
           header={
             <ValidatedPanelHeader
-              title="Report contents"
-              /*
-              TODO add custom subtitle for isReport status?
-              */
-              subtitle="Customize data source, filters, and layout for your report."
+              title={
+                isReport
+                  ? TRANSLATIONS.REPORT_CONTENTS_TITLE
+                  : TRANSLATIONS.ALERT_CONTENTS_TITLE
+              }
+              subtitle={TRANSLATIONS.CONTENTS_SUBTITLE}
               required
               validateCheckStatus={validationStatus[Sections.CONTENT].status}
             />
@@ -1662,8 +1617,8 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         <StyledPanel
           header={
             <ValidatedPanelHeader
-              title="Schedule"
-              subtitle="Define delivery schedule, timezone, and frequency settings for alerts."
+              title={TRANSLATIONS.SCHEDULE_TITLE}
+              subtitle={TRANSLATIONS.SCHEDULE_SUBTITLE}
               required
               validateCheckStatus={validationStatus[Sections.SCHEDULE].status}
             />
@@ -1671,8 +1626,7 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
           key="4"
           style={{ borderBottom: 'none' }}
         >
-          {/* TODO <div className="column schedule" ? */}
-          <AlertReportCronSchedulerTest
+          <AlertReportCronScheduler
             value={currentAlert?.crontab || ALERT_REPORTS_DEFAULT_CRON_VALUE}
             onChange={newVal => updateAlertState('crontab', newVal)}
           />
@@ -1706,7 +1660,7 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
               />
             </div>
           </StyledInputContainer>
-          <StyledInputContainer>
+          <StyledInputContainer css={no_margin_bottom}>
             <div className="control-label">
               {TRANSLATIONS.WORKING_TIMEOUT_TEXT}
               <span className="required">*</span>
@@ -1723,7 +1677,7 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
             </div>
           </StyledInputContainer>
           {!isReport && (
-            <StyledInputContainer>
+            <StyledInputContainer css={no_margin_bottom}>
               <div className="control-label">
                 {TRANSLATIONS.GRACE_PERIOD_TEXT}
               </div>
@@ -1743,8 +1697,8 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
         <StyledPanel
           header={
             <ValidatedPanelHeader
-              title="Notification method"
-              subtitle="Choose the notification method and recipients for alert sharing."
+              title={TRANSLATIONS.NOTIFICATION_TITLE}
+              subtitle={TRANSLATIONS.NOTIFICATION_SUBTITLE}
               required
               validateCheckStatus={
                 validationStatus[Sections.NOTIFICATION].status
@@ -1772,7 +1726,6 @@ const AlertReportModal: FunctionComponent<AlertReportModalProps> = ({
           />
         </StyledPanel>
       </Collapse>
-      {/* TODO </StyledSectionContainer> ? */}
     </StyledModal>
   );
 };
